@@ -80,6 +80,15 @@ With a single role allow_access_only_to accessing :index as user:
 With a single role allow_access_only_to accessing :index as visitor:
 [  OK  ] ==> should redirect to log in
 
+With mixed groups and roles accessing :foo as monkey:
+[  OK  ] ==> should respond with success
+
+With mixed groups and roles accessing :foo as user:
+[  OK  ] ==> should respond with success
+
+With mixed groups and roles accessing :foo as visitor:
+[  OK  ] ==> should redirect to log in
+
 With multiple roles accessing :foo as monkey:
 [  OK  ] ==> should respond with success
 
@@ -88,5 +97,3 @@ With multiple roles accessing :foo as user:
 
 With multiple roles accessing :foo as visitor:
 [  OK  ] ==> should redirect to log in
-
-

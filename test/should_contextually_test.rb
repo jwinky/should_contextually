@@ -110,7 +110,7 @@ class TestsControllerTest < ActionController::TestCase
     end
 
     context "With mixed groups and roles" do
-
+      allow_access_only_to(:foo, :as => [:group_of_roles_with_access_to_index, :monkey]) { get :foo }
     end
   end
 
