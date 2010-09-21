@@ -2,85 +2,53 @@ require 'should_contextually/test_case'
 
 module ShouldContextually
   class << self
+    attr_accessor :deny_tests, :default_deny_test, :role_setup_blocks, :before_all_roles_block, :allow_access_block
+
     def define(&configuation_block)
       Configurator.run(configuation_block)
     end
 
     def deny_test_for(role)
-      Configurator.deny_tests[role] || Configurator.deny_tests[:default]
+      deny_tests[role] || default_deny_test
     end
 
-    def before_all_roles_setup
-      Configurator.before_all_roles_block
+    def deny_tests
+      @deny_tests ||= {}
     end
 
-    def before_setup_for(role)
-      Configurator.role_setup_blocks[role]
-    end
-
-    def allow_test
-      Configurator.allow_access_block
+    def role_setup_blocks
+      @role_setup_blocks ||= {}
     end
   end
 
   class Configurator
-    class << self
-      attr_accessor :deny_tests, :role_setup_blocks, :before_all_roles_block, :allow_access_block
-
-      def run(configuration_block)
-        new.instance_eval(&configuration_block)
-      end
-
-      def deny_tests
-        @deny_tests ||= {}
-      end
-
-      def role_setup_blocks
-        @role_setup_blocks ||= {}
-      end
+    def self.run(configuration_block)
+      new.instance_eval(&configuration_block)
     end
 
     def before_all(&block)
-      store_before_all_roles_block(block)
+      ShouldContextually.before_all_roles_block = block
     end
 
     def before(role, &role_setup_block)
-      store_before_setup_block_for(role, &role_setup_block)
+      ShouldContextually.role_setup_blocks[role] = role_setup_block
     end
 
     def deny_access(&block)
-      store_deny_access_block_for(:default, block)
+      ShouldContextually.default_deny_test = block
     end
 
     def deny_access_to(role, &block)
-      store_deny_access_block_for(role, block)
+      ShouldContextually.deny_tests[role] = block
     end
 
     def allow_access(&block)
-      store_general_allow_access_block(block)
+      ShouldContextually.allow_access_block = block
     end
 
 #    def roles(*roles)
 #
 #    end
-
-    private
-
-    def store_before_setup_block_for(role, &role_setup_block)
-      self.class.role_setup_blocks[role] = role_setup_block
-    end
-
-    def store_deny_access_block_for(role, block)
-      self.class.deny_tests[role] = block
-    end
-
-    def store_before_all_roles_block(before_all_roles_block)
-      self.class.before_all_roles_block = before_all_roles_block
-    end
-
-    def store_general_allow_access_block(block)
-      self.class.allow_access_block = block
-    end
   end
 
 end

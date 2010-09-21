@@ -7,7 +7,7 @@ module ShouldContextually
     def allow_access_to(action, options, &request)
       roles = extract_roles!(options)
       roles.each do |role|
-        allow_test = ShouldContextually.allow_test
+        allow_test = ShouldContextually.allow_access_block
         access_test_for(action, role, request, allow_test)
       end
     end
@@ -28,8 +28,8 @@ module ShouldContextually
 
     def access_test_for(action, role, request, assertions)
       context "accessing :#{action} as #{role}" do
-        setup &ShouldContextually.before_all_roles_setup if ShouldContextually.before_all_roles_setup
-        setup &ShouldContextually.before_setup_for(role)
+        setup &ShouldContextually.before_all_roles_block if ShouldContextually.before_all_roles_block
+        setup &ShouldContextually.role_setup_blocks[role]
         setup &request
         instance_eval &assertions
       end
