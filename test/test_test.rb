@@ -14,12 +14,19 @@ end
 
 __END__
 
-TestsController with simple contexts as user responding to #GET index:
-[  OK  ] ==> should respond with success
-
 False:
 [  OK  ] ==> should be false
 
 True:
 [FAILED] ==> should be false (1)
+
+With a single role accessing :index as monkey:
+[  OK  ] ==> should redirect to root
+
+With a single role accessing :index as user:
+[FAILED] ==> should deny access (2)
+[  OK  ] ==> should respond with success
+
+With a single role accessing :index as visitor:
+[  OK  ] ==> should redirect to log in
 
