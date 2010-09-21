@@ -2,22 +2,26 @@ require 'should_contextually/test_case'
 
 module ShouldContextually
 
-  def self.define(&block)
-    Definition.new.instance_eval(&block)
+  def self.define(&configuation_block)
+    Configurator.run(configuation_block)
   end
 
   def self.deny_test_for(role)
-    Definition.deny_tests[role] || Definition.deny_tests[:default]
+    Configurator.deny_tests[role] || Configurator.deny_tests[:default]
   end
 
   def self.before_setup_for(role)
-    Definition.role_setup_blocks[role]
+    Configurator.role_setup_blocks[role]
   end
 
-  class Definition
+  class Configurator
     class << self
       attr_accessor :deny_tests, :role_setup_blocks
-      
+
+      def run(configuration_block)
+        new.instance_eval(&configuration_block)
+      end
+
       def deny_tests
         @deny_tests ||= {}
       end
@@ -25,7 +29,6 @@ module ShouldContextually
       def role_setup_blocks
         @role_setup_blocks ||= {}
       end
-
     end
 
     def before(role, &role_setup_block)
@@ -37,11 +40,11 @@ module ShouldContextually
 #    end
 
     def deny_access(&block)
-      self.class.deny_tests[:default] = block
+      store_deny_access_block_for(:default, block)
     end
 
     def deny_access_to(role, &block)
-      self.class.deny_tests[role] = block
+      store_deny_access_block_for(role, block)
     end
 
     private
@@ -49,8 +52,11 @@ module ShouldContextually
     def store_before_setup_block_for(role, &role_setup_block)
       self.class.role_setup_blocks[role] = role_setup_block
     end
-  end
 
+    def store_deny_access_block_for(role, block)
+      self.class.deny_tests[role] = block
+    end
+  end
 
 end
 
