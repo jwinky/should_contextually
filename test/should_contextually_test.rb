@@ -51,6 +51,9 @@ ShouldContextually.define do
   before(:visitor) { @controller.current_user = nil }
   before(:monkey) { @controller.current_user = :monkey }
 
+  group :user, :as => :group_of_roles_with_access_to_index
+  group :visitor, :monkey, :as => :group_without_access_to_index
+
   allow_access do
     should_respond_with :success
   end
@@ -79,23 +82,29 @@ class TestsControllerTest < ActionController::TestCase
       # This should fail
       allow_access_to(:index, :as => :monkey) { get :index }
       deny_access_to(:index, :as => :user) { get :index }
+
+      context "allow_access_only_to" do
+        allow_access_only_to(:index, :as => :user) { get :index }
+      end
     end
 
-    context "Only as a single role" do
-      allow_access_only_to(:index, :as => :user) { get :index }
-    end
 
     context "With multiple roles" do
       # something
     end
-  end
 
-  context "True" do
-    should("be false") { assert_equal false, true }
-  end
+    context "With a group" do
+      allow_access_to(:index, :as => :group_of_roles_with_access_to_index) { get :index }
+      deny_access_to(:index, :as => :group_without_access_to_index) { get :index }
 
-  context "False" do
-    should("be false") { assert_not_equal false, true }
+      context "allow_access_only_to" do
+        allow_access_only_to(:index, :as => :group_of_roles_with_access_to_index) { get :index }
+      end
+    end
+
+    context "With mixed groups and roles" do
+
+    end
   end
 
 end

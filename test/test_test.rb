@@ -42,29 +42,41 @@ end
 
 __END__
 
-False:
-[  OK  ] ==> should be false
-
-Only as a single role accessing :index as monkey:
+With a group accessing :index as monkey:
 [  OK  ] ==> should redirect to root
 
-Only as a single role accessing :index as user:
+With a group accessing :index as user:
 [  OK  ] ==> should respond with success
 
-Only as a single role accessing :index as visitor:
+With a group accessing :index as visitor:
 [  OK  ] ==> should redirect to log in
 
-True:
-[FAILED] ==> should be false (1)
+With a group allow_access_only_to accessing :index as monkey:
+[  OK  ] ==> should redirect to root
+
+With a group allow_access_only_to accessing :index as user:
+[  OK  ] ==> should respond with success
+
+With a group allow_access_only_to accessing :index as visitor:
+[  OK  ] ==> should redirect to log in
 
 With a single role accessing :index as monkey:
 [  OK  ] ==> should redirect to root
-[FAILED] ==> should respond with success (2)
+[FAILED] ==> should respond with success (1)
 
 With a single role accessing :index as user:
-[FAILED] ==> should respond with forbidden (3)
+[FAILED] ==> should respond with forbidden (2)
 [  OK  ] ==> should respond with success
 
 With a single role accessing :index as visitor:
+[  OK  ] ==> should redirect to log in
+
+With a single role allow_access_only_to accessing :index as monkey:
+[  OK  ] ==> should redirect to root
+
+With a single role allow_access_only_to accessing :index as user:
+[  OK  ] ==> should respond with success
+
+With a single role allow_access_only_to accessing :index as visitor:
 [  OK  ] ==> should redirect to log in
 

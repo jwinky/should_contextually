@@ -5,7 +5,8 @@ module ShouldContextually
   
   class << self
     attr_accessor :deny_tests, :default_deny_test, :role_setup_blocks,
-                  :before_all_roles_block, :allow_access_block, :roles
+                  :before_all_roles_block, :allow_access_block,
+                  :roles, :groups
 
     def define(&configuation_block)
       Configurator.run(configuation_block)
@@ -26,6 +27,11 @@ module ShouldContextually
     def roles
       @roles || raise(ConfigurationError, "No roles defined.")
     end
+
+    def groups
+      @groups ||= {}
+    end
+
   end
 
   class Configurator
@@ -35,6 +41,11 @@ module ShouldContextually
 
     def roles(*roles)
       ShouldContextually.roles = roles
+    end
+
+    def group(*roles)
+      group_name = roles.extract_options![:as]
+      ShouldContextually.groups[group_name] = roles
     end
 
     def before_all(&block)
