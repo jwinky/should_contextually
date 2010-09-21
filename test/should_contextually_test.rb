@@ -45,15 +45,15 @@ end
 ShouldContextually.define do
 #  roles :user, :visitor, :monkey
 
-#  allow_access do
-#    should_respond_with :success
-#  end
-
   before_all { @controller.global_before = true }
 
   before(:user) { @controller.current_user = :user }
   before(:visitor) { @controller.current_user = nil }
   before(:monkey) { @controller.current_user = :monkey }
+
+  allow_access do
+    should_respond_with :success
+  end
 
   deny_access do
     should("deny access") { assert false }
@@ -72,7 +72,6 @@ class TestsControllerTest < ActionController::TestCase
 
   should_contextually do
     context "With a single role" do
-
       allow_access_to(:index, :as => :user) { get :index }
       deny_access_to(:index, :as => :visitor) { get :index }
       deny_access_to(:index, :as => :monkey) { get :index }
@@ -80,7 +79,6 @@ class TestsControllerTest < ActionController::TestCase
 
       deny_access_to(:index, :as => :user) { get :index }
       # This should fail
-
     end
 
     context "With multiple roles" do

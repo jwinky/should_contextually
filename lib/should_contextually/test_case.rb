@@ -7,7 +7,7 @@ module ShouldContextually
     def allow_access_to(action, options, &request)
       roles = extract_roles!(options)
       roles.each do |role|
-        allow_test = Proc.new { should_respond_with :success }
+        allow_test = ShouldContextually.allow_test
         access_test_for(action, role, request, allow_test)
       end
     end

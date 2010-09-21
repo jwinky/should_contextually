@@ -31,3 +31,4 @@ With a single role accessing :index as user:
 With a single role accessing :index as visitor:
 [  OK  ] ==> should redirect to log in
 
+
