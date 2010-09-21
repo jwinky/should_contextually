@@ -44,9 +44,14 @@ class TestsController < ActionController::Base
   end
 end
 
+CACHED_OBJECT = { :timestamp => Time.now.to_i, :changed => false }
 
 ShouldContextually.define do
   roles :user, :visitor, :monkey
+
+  cached_before_all do
+    @cached_object = CACHED_OBJECT
+  end
 
   before_all do
     @controller.global_before = true
@@ -80,7 +85,15 @@ end
 class TestsControllerTest < ActionController::TestCase
 
   should_contextually do
-    setup { @controller.overridden_in_setup = true }
+    setup do
+      @controller.overridden_in_setup = true
+
+      # Every test gets a dup of cached objects
+      assert_equal CACHED_OBJECT[:timestamp], @cached_object[:timestamp]
+      assert_equal false, @cached_object[:changed]
+      assert_not_equal CACHED_OBJECT.object_id, @cached_object.object_id
+      @cached_object[:changed] = true
+    end
 
     context "With a single role" do
       allow_access_to(:index, :as => :user) { get :index }
@@ -113,5 +126,6 @@ class TestsControllerTest < ActionController::TestCase
       allow_access_only_to(:foo, :as => [:group_of_roles_with_access_to_index, :monkey]) { get :foo }
     end
   end
+
 
 end

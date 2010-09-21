@@ -5,8 +5,10 @@ module ShouldContextually
   
   class << self
     attr_accessor :deny_tests, :default_deny_test, :role_setup_blocks,
-                  :before_all_roles_block, :allow_access_block,
+                  :cached_before_all_block, :before_all_roles_block, :allow_access_block,
                   :roles, :groups
+
+    attr_accessor :setup_before_all_cache, :teardown_before_all_cache, :cached_ivars
 
     def define(&configuation_block)
       Configurator.run(configuation_block)
@@ -48,6 +50,10 @@ module ShouldContextually
       ShouldContextually.groups[group_name] = roles
     end
 
+    def cached_before_all(&block)
+      ShouldContextually.cached_before_all_block = block
+    end
+
     def before_all(&block)
       ShouldContextually.before_all_roles_block = block
     end
@@ -75,6 +81,46 @@ module ShouldContextually
 
 end
 
+
+ShouldContextually.setup_before_all_cache = lambda do
+  # If a cached_before_all block is defined
+  #    AND we haven't run it
+  #    THEN run it and cache everything
+
+  if ShouldContextually.cached_before_all_block
+    original_ivars = instance_variables
+    instance_eval &ShouldContextually.cached_before_all_block
+    new_ivars = instance_variables - original_ivars
+    ShouldContextually.cached_ivars = new_ivars.inject({}) { |ivars, var_name| ivars[var_name] = instance_variable_get(var_name); ivars }
+  end
+  
+#  if ShouldContextually.before_all_roles_block && !ShouldContextually.before_all_loaded
+#    orig_instance_vars = instance_variables
+#    instance_eval &ShouldContextually.before_all_roles_block
+#    new_instance_vars = instance_variables - orig_instance_vars
+#    ShouldContextually.fixture_instance_vars = new_instance_vars.inject({}) { |h, v| h[v] = instance_variable_get(v); h }
+#    ShouldContextually.before_all_loaded = true
+#  end
+#
+
+  # Restore the cached state
+  ShouldContextually.cached_ivars.each do |name, value|
+    instance_variable_set(name, value.dup) rescue instance_variable_set(name, value)
+  end
+
+#  ActiveRecord::Base.connection.increment_open_transactions
+#  ActiveRecord::Base.connection.transaction_joinable = false
+#  ActiveRecord::Base.connection.begin_db_transaction
+end
+
+ShouldContextually.teardown_before_all_cache = lambda do
+#  # Rollback changes if a transaction is active.
+#  if ActiveRecord::Base.connection.open_transactions != 0
+#    ActiveRecord::Base.connection.rollback_db_transaction
+#    ActiveRecord::Base.connection.decrement_open_transactions
+#  end
+#  ActiveRecord::Base.clear_active_connections!
+end
 
 __END__
 
@@ -195,34 +241,7 @@ module ShouldContextually
   end
 end
 
-#ShouldContextually.setup_transactional_before_all = lambda do
-#  if ShouldContextually.before_all && !ShouldContextually.before_all_loaded
-#    orig_instance_vars = instance_variables
-#    instance_eval &ShouldContextually.before_all
-#    new_instance_vars = instance_variables - orig_instance_vars
-#    ShouldContextually.fixture_instance_vars = new_instance_vars.inject({}) { |h, v| h[v] = instance_variable_get(v); h }
-#    ShouldContextually.before_all_loaded = true
-#  end
-#
-#  ShouldContextually.fixture_instance_vars.each do |name, value|
-#    instance_variable_set(name, value.dup)
-#  end
-#
-#  ActiveRecord::Base.transaction
-#
-#  ActiveRecord::Base.connection.increment_open_transactions
-#  ActiveRecord::Base.connection.transaction_joinable = false
-#  ActiveRecord::Base.connection.begin_db_transaction
-#end
-#
-#ShouldContextually.teardown_transactional_before_all = lambda do
-#  # Rollback changes if a transaction is active.
-#  if ActiveRecord::Base.connection.open_transactions != 0
-#    ActiveRecord::Base.connection.rollback_db_transaction
-#    ActiveRecord::Base.connection.decrement_open_transactions
-#  end
-#  ActiveRecord::Base.clear_active_connections!
-#end
+
 
 ActionController::TestCase.send(:extend, ShouldContextually::TestCaseMethods)
 

@@ -2,7 +2,9 @@ module ShouldContextually
   module TestCase
     def should_contextually(&block)
       context "" do
+        setup &ShouldContextually.setup_before_all_cache
         setup &ShouldContextually.before_all_roles_block if ShouldContextually.before_all_roles_block
+        teardown &ShouldContextually.teardown_before_all_cache
         instance_eval &block
       end
     end
