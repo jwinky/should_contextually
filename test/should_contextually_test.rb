@@ -5,7 +5,7 @@ ActionController::Routing::Routes.draw do |map|
   map.login 'session', :controller => 'session'
   map.index 'tests', :controller => 'tests', :action => 'index'
 #  map.index 'test', :controller => 'tests', :action => 'show'
-#  map.index 'foo', :controller => 'tests', :action => 'foo'
+  map.index 'foo', :controller => 'tests', :action => 'foo'
 end
 
 
@@ -25,15 +25,13 @@ class TestsController < ActionController::Base
     end
   end
 
-#  def foo
-#    if not current_user
-#      redirect_to new_session_url
-#    end
-#  end
-#
-#  def show
-#
-#  end
+  def foo
+    if current_user
+      render :text => "bar"
+    else
+      redirect_to login_path
+    end
+  end
 
   private
 
@@ -98,9 +96,8 @@ class TestsControllerTest < ActionController::TestCase
       end
     end
 
-
     context "With multiple roles" do
-      # something
+      allow_access_only_to(:foo, :as => [:user, :monkey]) { get :foo }
     end
 
     context "With a group" do
