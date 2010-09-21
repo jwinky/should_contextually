@@ -1,6 +1,4 @@
-should_contextually
-
-A testing plugin for Ruby on Rails that provides a framework for access testing in functional tests.
+ShouldContextually:  Access testing framework for Test::Unit + Shoulda
 
 Inspired by Contextually for RSpec (http://github.com/jnicklas/contextually)
 
