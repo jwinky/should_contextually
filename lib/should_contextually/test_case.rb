@@ -4,6 +4,13 @@ module ShouldContextually
       yield
     end
 
+    def allow_access_only_to(action, options, &request)
+      allow_access_to action, options, &request
+      allow_roles = extract_roles!(options)
+      deny_roles = ShouldContextually.roles - allow_roles
+      deny_access_to action, :as => deny_roles, &request
+    end
+
     def allow_access_to(action, options, &request)
       roles = extract_roles!(options)
       roles.each do |role|

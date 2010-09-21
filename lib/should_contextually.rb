@@ -1,8 +1,11 @@
 require 'should_contextually/test_case'
 
 module ShouldContextually
+  class ConfigurationError < StandardError; end
+  
   class << self
-    attr_accessor :deny_tests, :default_deny_test, :role_setup_blocks, :before_all_roles_block, :allow_access_block
+    attr_accessor :deny_tests, :default_deny_test, :role_setup_blocks,
+                  :before_all_roles_block, :allow_access_block, :roles
 
     def define(&configuation_block)
       Configurator.run(configuation_block)
@@ -19,11 +22,19 @@ module ShouldContextually
     def role_setup_blocks
       @role_setup_blocks ||= {}
     end
+
+    def roles
+      @roles || raise(ConfigurationError, "No roles defined.")
+    end
   end
 
   class Configurator
     def self.run(configuration_block)
       new.instance_eval(&configuration_block)
+    end
+
+    def roles(*roles)
+      ShouldContextually.roles = roles
     end
 
     def before_all(&block)

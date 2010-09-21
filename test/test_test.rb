@@ -1,14 +1,42 @@
 require File.expand_path('test_helper', File.dirname(__FILE__))
 require 'ap'
 
+begin
+  require 'differ'
+  Differ.format = :color
+  USE_DIFFER = true
+rescue LoadError
+  USE_DIFFER = false
+end
+
+
+STARS = "*"*80
+
 class TestTest < Test::Unit::TestCase
   context "Output of should_contextually_test.rb" do
     should "match expected" do
       actual = `ruby #{File.join(File.dirname(__FILE__), "should_contextually_test.rb")}`.gsub(/(\033\[0;31m|\033\[0m|\033\[0;32m)/, '')
       expected = File.read(__FILE__).split(Base64.decode64("X19FTkRfXw==\n")).second.strip
-      stars = "*"*80
-      assert_match Regexp.new(Regexp.escape(expected)), actual, "\n#{ stars }\nACTUAL OUTPUT\n#{ stars }\n\n#{actual}\n#{ stars }\n"
+      assert_match Regexp.new(Regexp.escape(expected)), actual, failed_match_message(actual, expected)
     end
+  end
+
+  private
+
+  def failed_match_message(actual, expected)
+    if USE_DIFFER
+      differ_failure_message(actual, expected)
+    else
+      plain_failure_message(actual)
+    end
+  end
+
+  def differ_failure_message(actual, expected)
+    "\n#{ STARS }\nDIFF'D OUTPUT\n#{ STARS }\n\n#{Differ.diff_by_line(actual, expected)}\n#{ STARS }\n"
+  end
+
+  def plain_failure_message(actual)
+    "\n#{ STARS }\nACTUAL OUTPUT\n#{ STARS }\n\n#{actual}\n#{ STARS }\n"
   end
 end
 
@@ -16,6 +44,15 @@ __END__
 
 False:
 [  OK  ] ==> should be false
+
+Only as a single role accessing :index as monkey:
+[  OK  ] ==> should redirect to root
+
+Only as a single role accessing :index as user:
+[  OK  ] ==> should respond with success
+
+Only as a single role accessing :index as visitor:
+[  OK  ] ==> should redirect to log in
 
 True:
 [FAILED] ==> should be false (1)
@@ -25,10 +62,9 @@ With a single role accessing :index as monkey:
 [FAILED] ==> should respond with success (2)
 
 With a single role accessing :index as user:
-[FAILED] ==> should deny access (3)
+[FAILED] ==> should respond with forbidden (3)
 [  OK  ] ==> should respond with success
 
 With a single role accessing :index as visitor:
 [  OK  ] ==> should redirect to log in
-
 
