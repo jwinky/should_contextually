@@ -10,9 +10,10 @@ end
 
 
 class TestsController < ActionController::Base
-  attr_accessor :current_user, :global_before
+  attr_accessor :current_user, :global_before, :overridden_in_setup
 
   before_filter :ensure_before_all_ran
+  before_filter :ensure_overridden_in_setup_set_to_true
 
   def index
     if not current_user
@@ -39,13 +40,20 @@ class TestsController < ActionController::Base
   def ensure_before_all_ran
     raise "global before not run" unless global_before
   end
+
+  def ensure_overridden_in_setup_set_to_true
+    raise "variable not properly set in setup block" unless @overridden_in_setup
+  end
 end
 
 
 ShouldContextually.define do
   roles :user, :visitor, :monkey
 
-  before_all { @controller.global_before = true }
+  before_all do
+    @controller.global_before = true
+    @controller.overridden_in_setup = false
+  end
 
   before(:user) { @controller.current_user = :user }
   before(:visitor) { @controller.current_user = nil }
@@ -74,6 +82,8 @@ end
 class TestsControllerTest < ActionController::TestCase
 
   should_contextually do
+    setup { @controller.overridden_in_setup = true }
+
     context "With a single role" do
       allow_access_to(:index, :as => :user) { get :index }
       deny_access_to(:index, :as => :visitor) { get :index }

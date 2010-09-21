@@ -1,7 +1,10 @@
 module ShouldContextually
   module TestCase
     def should_contextually(&block)
-      yield
+      context "" do
+        setup &ShouldContextually.before_all_roles_block if ShouldContextually.before_all_roles_block
+        instance_eval &block
+      end
     end
 
     def allow_access_only_to(action, options, &request)
@@ -37,7 +40,7 @@ module ShouldContextually
 
     def access_test_for(action, role, request, assertions)
       context "accessing :#{action} as #{role}" do
-        setup &ShouldContextually.before_all_roles_block if ShouldContextually.before_all_roles_block
+
         setup &ShouldContextually.role_setup_blocks[role]
         setup &request
         instance_eval &assertions
