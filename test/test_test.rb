@@ -43,6 +43,7 @@ end
 __END__
 
 With a group accessing :index as monkey:
+Doing an Expensive Operation
 [  OK  ] ==> should redirect to root
 
 With a group accessing :index as user:

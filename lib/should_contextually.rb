@@ -87,22 +87,13 @@ ShouldContextually.setup_before_all_cache = lambda do
   #    AND we haven't run it
   #    THEN run it and cache everything
 
-  if ShouldContextually.cached_before_all_block
+  if ShouldContextually.cached_before_all_block && ShouldContextually.cached_ivars.nil?
     original_ivars = instance_variables
     instance_eval &ShouldContextually.cached_before_all_block
     new_ivars = instance_variables - original_ivars
     ShouldContextually.cached_ivars = new_ivars.inject({}) { |ivars, var_name| ivars[var_name] = instance_variable_get(var_name); ivars }
   end
   
-#  if ShouldContextually.before_all_roles_block && !ShouldContextually.before_all_loaded
-#    orig_instance_vars = instance_variables
-#    instance_eval &ShouldContextually.before_all_roles_block
-#    new_instance_vars = instance_variables - orig_instance_vars
-#    ShouldContextually.fixture_instance_vars = new_instance_vars.inject({}) { |h, v| h[v] = instance_variable_get(v); h }
-#    ShouldContextually.before_all_loaded = true
-#  end
-#
-
   # Restore the cached state
   ShouldContextually.cached_ivars.each do |name, value|
     instance_variable_set(name, value.dup) rescue instance_variable_set(name, value)
