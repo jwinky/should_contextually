@@ -4,7 +4,6 @@ ActionController::Routing::Routes.draw do |map|
   map.root :controller => 'monkey'
   map.login 'session', :controller => 'session'
   map.index 'tests', :controller => 'tests', :action => 'index'
-#  map.index 'test', :controller => 'tests', :action => 'show'
   map.index 'foo', :controller => 'tests', :action => 'foo'
 end
 

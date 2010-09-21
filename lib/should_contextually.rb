@@ -73,10 +73,6 @@ module ShouldContextually
     def allow_access(&block)
       ShouldContextually.allow_access_block = block
     end
-
-#    def roles(*roles)
-#
-#    end
   end
 
 end
