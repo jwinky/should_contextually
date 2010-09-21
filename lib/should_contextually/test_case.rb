@@ -8,9 +8,9 @@ module ShouldContextually
       roles = extract_roles!(options)
       roles.each do |role|
         context("accessing :#{action} as #{role}") do
-          should("respond with success") do
-            assert true
-          end
+          setup &ShouldContextually.before_setup_for(role)
+          setup &request
+          should_respond_with :success
         end
       end
     end
@@ -18,14 +18,11 @@ module ShouldContextually
     def deny_access_to(action, options, &request)
       roles = extract_roles!(options)
       roles.each do |role|
+        deny_test = ShouldContextually.deny_test_for(role)
         context "accessing :#{action} as #{role}" do
-          if role == :monkey
-            should("redirect to root") { assert true }
-          elsif role == :visitor
-            should("redirect to log in") { assert true }
-          else
-            should("deny access") { assert false }
-          end
+          setup &ShouldContextually.before_setup_for(role)
+          setup &request
+          instance_eval &deny_test
         end
       end
     end

@@ -22,9 +22,10 @@ True:
 
 With a single role accessing :index as monkey:
 [  OK  ] ==> should redirect to root
+[FAILED] ==> should respond with success (2)
 
 With a single role accessing :index as user:
-[FAILED] ==> should deny access (2)
+[FAILED] ==> should deny access (3)
 [  OK  ] ==> should respond with success
 
 With a single role accessing :index as visitor:

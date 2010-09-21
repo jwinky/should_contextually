@@ -14,12 +14,13 @@ class TestsController < ActionController::Base
 
   def index
 #    raise "global before not run" unless global_before
-#    if not current_user
-#      redirect_to new_session_url
-#    elsif not current_user == :user
-#      redirect_to root_url
-#    end
-    render :text => "hello, world"
+    if not current_user
+      redirect_to login_path
+    elsif not current_user == :user
+      redirect_to root_url
+    else
+      render :text => "hello, world"
+    end
   end
 
 #  def foo
@@ -33,16 +34,17 @@ class TestsController < ActionController::Base
 #  end
 end
 
-ShouldContextually.define do
-  roles :user, :visitor, :monkey
 
-#  before :user do
-#    controller.current_user = :user
-#  end
-#
+ShouldContextually.define do
+#  roles :user, :visitor, :monkey
+
 #  allow_access do
 #    should_respond_with :success
 #  end
+
+  before(:user) { @controller.current_user = :user }
+  before(:visitor) { @controller.current_user = nil }
+  before(:monkey) { @controller.current_user = :monkey }
 
   deny_access do
     should("deny access") { assert false }
@@ -61,11 +63,15 @@ class TestsControllerTest < ActionController::TestCase
 
   should_contextually do
     context "With a single role" do
+
       allow_access_to(:index, :as => :user) { get :index }
       deny_access_to(:index, :as => :visitor) { get :index }
       deny_access_to(:index, :as => :monkey) { get :index }
+      allow_access_to(:index, :as => :monkey) { get :index }
 
-      deny_access_to(:index, :as => :user) { get :index } # This should fail
+      deny_access_to(:index, :as => :user) { get :index }
+      # This should fail
+
     end
 
     context "With multiple roles" do
@@ -81,114 +87,4 @@ class TestsControllerTest < ActionController::TestCase
     should("be false") { assert_not_equal false, true }
   end
 
-end
-
-
-__END__
-
-
-ShouldContextually.define do
-  roles :user, :visitor, :monkey
-
-  group :user, :monkey, :as => :member
-  group :visitor, :monkey, :as => :idiot
-
-  before_all do
-    controller.stub!(:global_before).and_return(true)
-  end
-
-  before :user do
-    controller.stub!(:current_user).and_return(:user)
-  end
-  before :visitor do
-    controller.stub!(:current_user).and_return(nil)
-  end
-  before :monkey do
-    controller.stub!(:current_user).and_return(:monkey)
-  end
-
-  deny_access_to :visitor do
-    it("should deny access") { should redirect_to(new_session_url) }
-  end
-  deny_access do
-    it("should deny access") { should redirect_to(root_url) }
-  end
-end
-
-ActionController::Routing::Routes.draw do |map|
-  map.root :controller => 'monkey'
-  map.new_session 'session', :controller => 'session'
-  map.index 'tests', :controller => 'tests', :action => 'index'
-  map.index 'test', :controller => 'tests', :action => 'show'
-  map.index 'foo', :controller => 'tests', :action => 'foo'
-end
-
-
-describe TestsController, :type => :controller do
-  context "with simple contexts" do
-    as :user, :get => :index do
-      it { should respond_with(:success) }
-    end
-
-    as :visitor, :get => :index do
-      it("should deny access") { should redirect_to(new_session_url) }
-    end
-  end
-
-  context "with multiple roles" do
-    as :visitor, :monkey, :user, :get => :show do
-      it { should respond_with(:success) }
-    end
-
-    as :visitor, :monkey, :user, "GET /test" do
-      describe :get => :show do
-        it { should respond_with(:success) }
-      end
-    end
-
-    as :visitor, :monkey, :user do
-      describe :get => :show do
-        it { should respond_with(:success) }
-      end
-    end
-  end
-
-  context "with multiple roles as an array" do
-    as [:visitor, :monkey, :user], :get => :show do
-      it { should respond_with(:success) }
-    end
-
-    as [:visitor, :monkey, :user], "GET /test" do
-      describe :get => :show do
-        it { should respond_with(:success) }
-      end
-    end
-
-    as [:visitor, :monkey, :user] do
-      describe :get => :show do
-        it { should respond_with(:success) }
-      end
-    end
-  end
-  context "with only_as" do
-    only_as :user, :get => :index do
-      it { should respond_with(:success) }
-    end
-  end
-
-  context "with deny access" do
-    deny_access_to :monkey, :visitor, :get => :index
-  end
-
-  context "with groups" do
-    deny_access_to :idiot, :get => :index
-
-    only_as :member, :get => :foo do
-      it { should respond_with(:success) }
-    end
-  end
-
-  context "with only_allow_access_to" do
-    only_allow_access_to :user, :get => :index
-  end
 end

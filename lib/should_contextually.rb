@@ -6,17 +6,51 @@ module ShouldContextually
     Definition.new.instance_eval(&block)
   end
 
-  class Definition
+  def self.deny_test_for(role)
+    Definition.deny_tests[role] || Definition.deny_tests[:default]
+  end
 
-    def roles(*roles)
+  def self.before_setup_for(role)
+    Definition.role_setup_blocks[role]
+  end
+
+  class Definition
+    class << self
+      attr_accessor :deny_tests, :role_setup_blocks
+      
+      def deny_tests
+        @deny_tests ||= {}
+      end
+
+      def role_setup_blocks
+        @role_setup_blocks ||= {}
+      end
+
     end
 
+    def before(role, &role_setup_block)
+      store_before_setup_block_for(role, &role_setup_block)
+    end
+
+#    def roles(*roles)
+#
+#    end
+
     def deny_access(&block)
+      self.class.deny_tests[:default] = block
     end
 
     def deny_access_to(role, &block)
+      self.class.deny_tests[role] = block
+    end
+
+    private
+
+    def store_before_setup_block_for(role, &role_setup_block)
+      self.class.role_setup_blocks[role] = role_setup_block
     end
   end
+
 
 end
 
