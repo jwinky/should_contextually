@@ -28,6 +28,7 @@ module ShouldContextually
 
     def access_test_for(action, role, request, assertions)
       context "accessing :#{action} as #{role}" do
+        setup &ShouldContextually.before_all_roles_setup if ShouldContextually.before_all_roles_setup
         setup &ShouldContextually.before_setup_for(role)
         setup &request
         instance_eval &assertions

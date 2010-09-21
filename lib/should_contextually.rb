@@ -10,13 +10,17 @@ module ShouldContextually
     Configurator.deny_tests[role] || Configurator.deny_tests[:default]
   end
 
+  def self.before_all_roles_setup
+    Configurator.before_all_roles_block
+  end
+
   def self.before_setup_for(role)
     Configurator.role_setup_blocks[role]
   end
 
   class Configurator
     class << self
-      attr_accessor :deny_tests, :role_setup_blocks
+      attr_accessor :deny_tests, :role_setup_blocks, :before_all_roles_block
 
       def run(configuration_block)
         new.instance_eval(&configuration_block)
@@ -31,13 +35,13 @@ module ShouldContextually
       end
     end
 
+    def before_all(&block)
+      store_before_all_roles_block(block)
+    end
+
     def before(role, &role_setup_block)
       store_before_setup_block_for(role, &role_setup_block)
     end
-
-#    def roles(*roles)
-#
-#    end
 
     def deny_access(&block)
       store_deny_access_block_for(:default, block)
@@ -47,6 +51,10 @@ module ShouldContextually
       store_deny_access_block_for(role, block)
     end
 
+#    def roles(*roles)
+#
+#    end
+
     private
 
     def store_before_setup_block_for(role, &role_setup_block)
@@ -55,6 +63,10 @@ module ShouldContextually
 
     def store_deny_access_block_for(role, block)
       self.class.deny_tests[role] = block
+    end
+
+    def store_before_all_roles_block(before_all_roles_block)
+      self.class.before_all_roles_block = before_all_roles_block
     end
   end
 

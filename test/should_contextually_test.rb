@@ -10,10 +10,11 @@ end
 
 
 class TestsController < ActionController::Base
-  attr_accessor :current_user
+  attr_accessor :current_user, :global_before
+
+  before_filter :ensure_before_all_ran
 
   def index
-#    raise "global before not run" unless global_before
     if not current_user
       redirect_to login_path
     elsif not current_user == :user
@@ -32,6 +33,12 @@ class TestsController < ActionController::Base
 #  def show
 #
 #  end
+
+  private
+
+  def ensure_before_all_ran
+    raise "global before not run" unless global_before
+  end
 end
 
 
@@ -41,6 +48,8 @@ ShouldContextually.define do
 #  allow_access do
 #    should_respond_with :success
 #  end
+
+  before_all { @controller.global_before = true }
 
   before(:user) { @controller.current_user = :user }
   before(:visitor) { @controller.current_user = nil }
