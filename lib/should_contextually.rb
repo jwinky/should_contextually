@@ -6,10 +6,8 @@ module ShouldContextually
 
   class << self
     attr_accessor :deny_tests, :default_deny_test, :role_setup_blocks,
-                  :cached_before_all_block, :before_all_roles_block, :allow_access_block,
+                  :before_all_roles_block, :allow_access_block,
                   :roles, :groups
-
-    attr_accessor :setup_before_all_cache, :teardown_before_all_cache, :cached_ivars, :caching_done
 
     def define(&configuation_block)
       Configurator.run(configuation_block)
@@ -35,10 +33,6 @@ module ShouldContextually
       @groups ||= {}
     end
 
-    def cached_ivars
-      @cached_ivars ||= {}
-    end
-
   end
 
   class Configurator
@@ -53,10 +47,6 @@ module ShouldContextually
     def group(*roles)
       group_name = roles.extract_options![:as]
       ShouldContextually.groups[group_name] = roles
-    end
-
-    def cached_before_all(&block)
-      ShouldContextually.cached_before_all_block = block
     end
 
     def before_all(&block)

@@ -43,17 +43,8 @@ class TestsController < ActionController::Base
   end
 end
 
-CACHED_OBJECT = { :timestamp => Time.now.to_i, :changed => false }
-$expensive_operation_counter = 0
-
 ShouldContextually.define do
   roles :user, :visitor, :monkey
-
-  cached_before_all do
-    puts "Doing an Expensive Operation"
-    $expensive_operation_counter += 1
-    @cached_object = CACHED_OBJECT
-  end
 
   before_all do
     @controller.global_before = true
@@ -89,13 +80,6 @@ class TestsControllerTest < ActionController::TestCase
   should_contextually do
     setup do
       @controller.overridden_in_setup = true
-
-      # Every test gets a dup of cached objects
-      assert_equal 1, $expensive_operation_counter
-      assert_equal CACHED_OBJECT[:timestamp], @cached_object[:timestamp]
-      assert_equal false, @cached_object[:changed]
-      assert_not_equal CACHED_OBJECT.object_id, @cached_object.object_id
-      @cached_object[:changed] = true
     end
 
     context "With a single role" do
